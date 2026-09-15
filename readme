@@ -1,0 +1,44 @@
+# Modern To-Do List Web Application
+
+A clean, responsive, and lightweight **single-page To-Do List application** built entirely with pure HTML, CSS, and vanilla JavaScript. 
+
+---
+
+## 🚀 Features
+
+* **Interactive Controls:** Click on any task text to cross it out (mark it complete) or use the **Delete** button to remove it permanently.
+* **Keyboard Friendly:** Add tasks quickly by typing and hitting the `Enter` key.
+* **Responsive Design:** A modern, mobile-friendly interface with beautiful linear gradient backgrounds.
+* **Zero Dependencies:** Built entirely with standard web technologies—no frameworks, libraries, or installations required.
+
+---
+
+## 📂 Project Structure
+
+```text
+├── index.html     # Single file containing HTML, CSS styles, and JavaScript logic
+└── README.md      # Documentation file
+```
+
+---
+
+## Authors
+
+- [@workwithpriyanshubisht-dev](https://www.github.com/workwithpriyanshubisht-dev)
+
+
+
+![App Screenshot](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWJv54mRFaVy_Fd0mKMLYq4yh4U6-UGknH914ALBh6OOvF8mwXGkqaHgY&s=10)
+
+
+## Running Tests
+
+To run tests, run the following command
+
+```bash
+  npm run test
+```
+
+## Run the App
+
+[Open the To-Do List](main.html)
