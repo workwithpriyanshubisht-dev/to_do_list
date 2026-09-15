@@ -11,22 +11,7 @@ A clean, responsive, and lightweight **single-page To-Do List application** buil
 * **Responsive Design:** A modern, mobile-friendly interface with beautiful linear gradient backgrounds.
 * **Zero Dependencies:** Built entirely with standard web technologies—no frameworks, libraries, or installations required.
 
----
 
-## 📂 Project Structure
-
-```text
-├── index.html     # Single file containing HTML, CSS styles, and JavaScript logic
-└── README.md      # Documentation file
-```
-
----
-## Authors
-
-- [@workwithpriyanshubisht-dev](https://www.github.com/workwithpriyanshubisht-dev)
-
-
-## Running Tests
 
 To run the to-do list click the link below
 https://workwithpriyanshubisht-dev.github.io/to_do_list/
