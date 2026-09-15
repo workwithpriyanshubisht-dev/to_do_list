@@ -21,24 +21,12 @@ A clean, responsive, and lightweight **single-page To-Do List application** buil
 ```
 
 ---
-
 ## Authors
 
 - [@workwithpriyanshubisht-dev](https://www.github.com/workwithpriyanshubisht-dev)
 
 
-
-![App Screenshot](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWJv54mRFaVy_Fd0mKMLYq4yh4U6-UGknH914ALBh6OOvF8mwXGkqaHgY&s=10)
-
-
 ## Running Tests
 
-To run tests, run the following command
-
-```bash
-  npm run test
-```
-
-## Run the App
-
-[Open the To-Do List](main.html)
+To run the to-do list click the link below
+https://workwithpriyanshubisht-dev.github.io/to_do_list/
