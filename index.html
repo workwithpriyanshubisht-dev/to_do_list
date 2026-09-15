@@ -19,6 +19,31 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            transition: background 0.6s ease;
+        }
+
+        body.theme-sunset {
+            background: linear-gradient(135deg, #ffd6a5 0%, #ff8fab 100%);
+        }
+
+        body.theme-forest {
+            background: linear-gradient(135deg, #d8f3dc 0%, #74c69d 100%);
+        }
+
+        body.theme-sunset .navbar {
+            background: linear-gradient(110deg, #e85d04, #d00000);
+        }
+
+        body.theme-forest .navbar {
+            background: linear-gradient(110deg, #2d6a4f, #1b4332);
+        }
+
+        body.theme-sunset #add-btn {
+            background-color: #e85d04;
+        }
+
+        body.theme-forest #add-btn {
+            background-color: #2d6a4f;
         }
 
         .app-shell {
@@ -37,12 +62,29 @@
             background: linear-gradient(110deg, #0f766e, #2563eb);
             border-radius: 12px;
             box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+            animation: navReveal 0.7s ease both;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .navbar::after {
+            background: rgba(255, 255, 255, 0.22);
+            content: '';
+            height: 150%;
+            left: -35%;
+            position: absolute;
+            top: -25%;
+            transform: rotate(20deg);
+            width: 18%;
+            animation: navShimmer 4s ease-in-out infinite;
+            pointer-events: none;
         }
 
         .brand {
             font-size: 20px;
             font-weight: 700;
             letter-spacing: 0.3px;
+            animation: brandFloat 3s ease-in-out infinite;
         }
 
         .nav-links {
@@ -64,6 +106,31 @@
             opacity: 1;
         }
 
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        #color-btn {
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: 6px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 11px;
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        #color-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
         .todo-container {
             background: #ffffff;
             width: 100%;
@@ -71,6 +138,7 @@
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: panelReveal 0.7s 0.15s ease both;
         }
 
         h2 {
@@ -129,6 +197,7 @@
             margin-bottom: 10px;
             border-left: 4px solid #6c5ce7;
             transition: all 0.3s ease;
+            animation: taskReveal 0.35s ease both;
         }
 
         .task-item.completed {
@@ -165,6 +234,40 @@
             background-color: #e84393;
         }
 
+        @keyframes navReveal {
+            from { opacity: 0; transform: translateY(-18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes panelReveal {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes taskReveal {
+            from { opacity: 0; transform: translateX(-12px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes brandFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+
+        @keyframes navShimmer {
+            0%, 35% { left: -35%; }
+            70%, 100% { left: 120%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
         @media (max-width: 480px) {
             .navbar {
                 align-items: flex-start;
@@ -183,10 +286,13 @@
     <div class="app-shell">
         <nav class="navbar" aria-label="Main navigation">
             <div class="brand">TaskFlow</div>
-            <ul class="nav-links">
-                <li><a href="#task-list">Tasks</a></li>
-                <li><a href="#task-input">Add Task</a></li>
-            </ul>
+            <div class="nav-actions">
+                <ul class="nav-links">
+                    <li><a href="#task-list">Tasks</a></li>
+                    <li><a href="#task-input">Add Task</a></li>
+                </ul>
+                <button id="color-btn" type="button" aria-label="Change navbar color">Change Color</button>
+            </div>
         </nav>
 
         <div class="todo-container">
@@ -208,6 +314,9 @@
         const taskInput = document.getElementById('task-input');
         const addBtn = document.getElementById('add-btn');
         const taskList = document.getElementById('task-list');
+        const colorBtn = document.getElementById('color-btn');
+        const themes = ['', 'theme-sunset', 'theme-forest'];
+        let themeIndex = 0;
 
         // Add Task Function
         function addTask() {
@@ -251,6 +360,14 @@
             taskInput.value = '';
             taskInput.focus();
         }
+
+        // Cycle through the available color palettes.
+        colorBtn.addEventListener('click', () => {
+            document.body.classList.remove(...themes.filter(Boolean));
+            themeIndex = (themeIndex + 1) % themes.length;
+            document.body.classList.add(themes[themeIndex]);
+            colorBtn.textContent = themeIndex === 0 ? 'Change Color' : 'Color ' + (themeIndex + 1);
+        });
 
         // Event Listeners
         addBtn.addEventListener('click', addTask);
