@@ -4,47 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Modern To-Do List (Persistent)</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; transition: background 0.6s ease; }
-    body.theme-sunset { background: linear-gradient(135deg, #ffd6a5 0%, #ff8fab 100%); }
-    body.theme-forest { background: linear-gradient(135deg, #d8f3dc 0%, #74c69d 100%); }
-    body.theme-sunset .navbar { background: linear-gradient(110deg, #e85d04, #d00000); }
-    body.theme-forest .navbar { background: linear-gradient(110deg, #2d6a4f, #1b4332); }
-    body.theme-sunset #add-btn { background-color: #e85d04; }
-    body.theme-forest #add-btn { background-color: #2d6a4f; }
-    .app-shell { width: 100%; max-width: 720px; }
-    .navbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 18px; padding: 16px 22px; color: #ffffff; background: linear-gradient(110deg, #0f766e, #2563eb); border-radius: 12px; box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25); animation: navReveal 0.7s ease both; overflow: hidden; position: relative; }
-    .navbar::after { background: rgba(255, 255, 255, 0.22); content: ''; height: 150%; left: -35%; position: absolute; top: -25%; transform: rotate(20deg); width: 18%; animation: navShimmer 4s ease-in-out infinite; pointer-events: none; }
-    .brand { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; animation: brandFloat 3s ease-in-out infinite; }
-    .nav-links { display: flex; gap: 18px; list-style: none; }
-    .nav-links a { color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; opacity: 0.9; transition: opacity 0.3s; }
-    .nav-links a:hover { opacity: 1; }
-    .nav-actions { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
-    #color-btn { background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 6px; color: #ffffff; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 11px; transition: background 0.3s, transform 0.3s; }
-    #color-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
-    .todo-container { background: #ffffff; width: 100%; max-width: 450px; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); margin: 0 auto; animation: panelReveal 0.7s 0.15s ease both; }
-    h2 { color: #333; margin-bottom: 20px; text-align: center; }
-    .input-section { display: flex; gap: 10px; margin-bottom: 20px; }
-    #task-input { flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 16px; outline: none; transition: border-color 0.3s; }
-    #task-input:focus { border-color: #8ec5fc; }
-    #add-btn { background-color: #6c5ce7; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: 600; transition: background 0.3s; }
-    #add-btn:hover { background-color: #5b4bc4; }
-    #task-list { list-style: none; }
-    .task-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #6c5ce7; transition: all 0.3s ease; animation: taskReveal 0.35s ease both; }
-    .task-item.completed { border-left-color: #2ecc71; background: #f0fbf5; opacity: 0.7; }
-    .task-item.completed .task-text { text-decoration: line-through; color: #7f8c8d; }
-    .task-text { flex: 1; cursor: pointer; margin-right: 10px; font-size: 16px; word-break: break-all; }
-    .delete-btn { background-color: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
-    .delete-btn:hover { background-color: #e84393; }
-    @keyframes navReveal { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes panelReveal { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes taskReveal { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes brandFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-    @keyframes navShimmer { 0%, 35% { left: -35%; } 70%, 100% { left: 120%; } }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; } }
-    @media (max-width: 480px) { .navbar { align-items: flex-start; flex-direction: column; gap: 10px; } .nav-links { gap: 14px; } }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app-shell">
