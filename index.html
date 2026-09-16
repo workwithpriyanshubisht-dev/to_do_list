@@ -3,130 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modern To-Do List (Persistent)</title>
+  <title>TaskFlow | Focused task management</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app-shell">
     <nav class="navbar" aria-label="Main navigation">
-      <div class="brand">TaskFlow</div>
+      <a class="brand" href="#top">TaskFlow</a>
       <div class="nav-actions">
         <ul class="nav-links">
           <li><a href="#task-list">Tasks</a></li>
           <li><a href="#task-input">Add Task</a></li>
         </ul>
-        <button id="color-btn" type="button" aria-label="Change navbar color">Change Color</button>
+        <button id="theme-btn" class="icon-btn" type="button" aria-label="Switch to dark mode" title="Switch theme">Dark mode</button>
       </div>
     </nav>
-    <div class="todo-container">
-      <h2>My To-Do List</h2>
+    <main class="todo-container" id="top">
+      <header class="list-header">
+        <div><p class="eyebrow">Today</p><h1>My tasks</h1></div>
+        <div class="stats" aria-live="polite"><strong id="remaining-count">0</strong><span>remaining</span></div>
+      </header>
       <div class="input-section">
-        <input type="text" id="task-input" placeholder="Add a new task..." autocomplete="off">
-        <button id="add-btn">Add</button>
+        <input type="text" id="task-input" placeholder="What needs to be done?" maxlength="160" autocomplete="off" aria-label="New task">
+        <label class="priority-control">Priority<select id="priority-input" aria-label="Task priority"><option value="normal">Normal priority</option><option value="high">High priority</option><option value="low">Low priority</option></select></label>
+        <button id="add-btn" type="button">Add task</button>
       </div>
-      <ul id="task-list"><!-- Managed Dynamically --></ul>
-    </div>
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="Filter tasks"><button class="filter-btn active" data-filter="all" type="button">All</button><button class="filter-btn" data-filter="active" type="button">Active</button><button class="filter-btn" data-filter="completed" type="button">Completed</button></div>
+        <button id="clear-completed" class="text-btn" type="button">Clear completed</button>
+      </div>
+      <ul id="task-list" aria-live="polite"></ul>
+      <p id="empty-state" class="empty-state">No tasks here yet. Add one above to get started.</p>
+    </main>
   </div>
 
   <script>
     const taskInput = document.getElementById('task-input');
     const addBtn = document.getElementById('add-btn');
+    const priorityInput = document.getElementById('priority-input');
     const taskList = document.getElementById('task-list');
-    const colorBtn = document.getElementById('color-btn');
-    const themes = ['', 'theme-sunset', 'theme-forest'];
-    let themeIndex = 0;
+    const remainingCount = document.getElementById('remaining-count');
+    const emptyState = document.getElementById('empty-state');
+    const clearCompleted = document.getElementById('clear-completed');
+    const themeBtn = document.getElementById('theme-btn');
+    let activeFilter = 'all';
+    let tasks = loadTasks();
 
-    // Fetch existing tasks from database on startup
-    async function fetchTasks() {
-      try {
-        const res = await fetch('/api/tasks');
-        const tasks = await res.json();
-        taskList.innerHTML = '';
-        tasks.forEach(task => renderTaskElement(task));
-      } catch (err) {
-        console.error('Error fetching tasks:', err);
-      }
+    function loadTasks() {
+      try { return JSON.parse(localStorage.getItem('taskflow-tasks')) || []; } catch (error) { return []; }
     }
 
-    // Dom Creation separation
+    function saveTasks() { localStorage.setItem('taskflow-tasks', JSON.stringify(tasks)); }
+
+    function renderTasks() {
+      const visibleTasks = tasks.filter(task => activeFilter === 'all' || (activeFilter === 'completed' ? task.completed : !task.completed));
+      taskList.innerHTML = '';
+      visibleTasks.forEach(renderTaskElement);
+      remainingCount.textContent = tasks.filter(task => !task.completed).length;
+      emptyState.hidden = visibleTasks.length > 0;
+      emptyState.textContent = tasks.length === 0 ? 'No tasks here yet. Add one above to get started.' : 'No tasks match this filter.';
+      clearCompleted.disabled = !tasks.some(task => task.completed);
+    }
+
     function renderTaskElement(task) {
       const li = document.createElement('li');
-      li.className = `task-item ${task.completed ? 'completed' : ''}`;
-      li.dataset.id = task._id;
+      li.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
+      li.dataset.id = task.id;
+
+      const check = document.createElement('button');
+      check.className = 'check-btn'; check.type = 'button'; check.dataset.action = 'toggle';
+      check.setAttribute('aria-label', task.completed ? 'Mark task active' : 'Mark task complete');
+      check.textContent = task.completed ? '✓' : '';
 
       const taskText = document.createElement('span');
       taskText.className = 'task-text';
-      taskText.innerText = task.text;
+      taskText.textContent = task.text;
+      taskText.title = 'Double-click to edit';
+      taskText.addEventListener('dblclick', () => startEditing(task, li));
 
-      taskText.addEventListener('click', () => toggleTask(task._id, li));
+      const priority = document.createElement('span');
+      priority.className = 'priority-label';
+      priority.textContent = { none: 'No priority', p1: 'High priority', p2: 'Normal priority', p3: 'Low priority', normal: 'Normal priority', high: 'High priority', low: 'Low priority' }[task.priority] || 'Normal priority';
 
+      const content = document.createElement('div'); content.className = 'task-content'; content.append(taskText, priority);
+      const actions = document.createElement('div'); actions.className = 'task-actions';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'row-btn'; editBtn.type = 'button'; editBtn.dataset.action = 'edit'; editBtn.textContent = 'Edit';
       const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'delete-btn';
-      deleteBtn.innerText = 'Delete';
-      deleteBtn.addEventListener('click', () => deleteTask(task._id, li));
-
-      li.appendChild(taskText);
-      li.appendChild(deleteBtn);
+      deleteBtn.className = 'row-btn delete-btn'; deleteBtn.type = 'button'; deleteBtn.dataset.action = 'delete'; deleteBtn.textContent = 'Delete';
+      actions.append(editBtn, deleteBtn);
+      li.append(check, content, actions);
       taskList.appendChild(li);
     }
 
-    // Create via API
-    async function addTask() {
+    function startEditing(task, li) {
+      const input = document.createElement('input'); input.className = 'edit-input'; input.value = task.text; input.maxLength = 160;
+      const text = li.querySelector('.task-text'); text.replaceWith(input); input.focus(); input.select();
+      const finish = () => { const value = input.value.trim(); if (value) task.text = value; saveTasks(); renderTasks(); };
+      input.addEventListener('blur', finish, { once: true });
+      input.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === 'Escape') input.blur(); });
+    }
+
+    function addTask() {
       const text = taskInput.value.trim();
       if (!text) return;
-
-      try {
-        const res = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text })
-        });
-        const newTask = await res.json();
-        renderTaskElement(newTask);
-        taskInput.value = '';
-        taskInput.focus();
-      } catch (err) {
-        console.error('Error saving task:', err);
-      }
+      tasks.unshift({ id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), text, priority: priorityInput.value, completed: false });
+      saveTasks(); renderTasks(); taskInput.value = ''; taskInput.focus();
     }
 
-    // Toggle status via API
-    async function toggleTask(id, element) {
-      try {
-        const res = await fetch(`/api/tasks/${id}`, { method: 'PATCH' });
-        if (res.ok) {
-          element.classList.toggle('completed');
-        }
-      } catch (err) {
-        console.error('Error updating task:', err);
-      }
+    function updateTask(id, action) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+      if (action === 'toggle') task.completed = !task.completed;
+      if (action === 'delete') tasks = tasks.filter(item => item.id !== id);
+      if (action === 'edit') return startEditing(task, document.querySelector(`[data-id="${id}"]`));
+      saveTasks(); renderTasks();
     }
 
-    // Delete via API
-    async function deleteTask(id, element) {
-      try {
-        const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-          element.remove();
-        }
-      } catch (err) {
-        console.error('Error deleting task:', err);
-      }
-    }
-
-    // Color switcher
-    colorBtn.addEventListener('click', () => {
-      document.body.classList.remove(...themes.filter(Boolean));
-      themeIndex = (themeIndex + 1) % themes.length;
-      document.body.classList.add(themes[themeIndex]);
-      colorBtn.textContent = themeIndex === 0 ? 'Change Color' : 'Color ' + (themeIndex + 1);
+    taskList.addEventListener('click', event => {
+      if (event.target.dataset.action) updateTask(event.target.closest('.task-item').dataset.id, event.target.dataset.action);
     });
-
+    document.querySelector('.filters').addEventListener('click', event => {
+      if (!event.target.matches('.filter-btn')) return;
+      activeFilter = event.target.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(button => button.classList.toggle('active', button === event.target));
+      renderTasks();
+    });
+    clearCompleted.addEventListener('click', () => { tasks = tasks.filter(task => !task.completed); saveTasks(); renderTasks(); });
     addBtn.addEventListener('click', addTask);
-    taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+    taskInput.addEventListener('keydown', event => { if (event.key === 'Enter') addTask(); });
+    themeBtn.addEventListener('click', () => {
+      const dark = document.body.classList.toggle('dark-mode');
+      localStorage.setItem('taskflow-theme', dark ? 'dark' : 'light');
+      themeBtn.textContent = dark ? 'Light mode' : 'Dark mode';
+      themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    });
+    if (localStorage.getItem('taskflow-theme') === 'dark') { document.body.classList.add('dark-mode'); themeBtn.textContent = 'Light mode'; themeBtn.setAttribute('aria-label', 'Switch to light mode'); }
 
-    // Initial Load
-    fetchTasks();
+    renderTasks();
   </script>
 </body>
 </html>

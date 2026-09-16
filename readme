@@ -1,17 +1,18 @@
-# Modern To-Do List Web Application
+# TaskFlow To-Do List
 
-A clean, responsive, and lightweight **single-page To-Do List application** built entirely with pure HTML, CSS, and vanilla JavaScript. 
+A responsive, lightweight single-page task manager built with pure HTML, CSS, and vanilla JavaScript. It works by opening `index.html`; no API or server is required.
 
 ---
 
 ## 🚀 Features
 
-* **Interactive Controls:** Click on any task text to cross it out (mark it complete) or use the **Delete** button to remove it permanently.
-* **Keyboard Friendly:** Add tasks quickly by typing and hitting the `Enter` key.
-* **Responsive Design:** A modern, mobile-friendly interface with beautiful linear gradient backgrounds.
-* **Zero Dependencies:** Built entirely with standard web technologies—no frameworks, libraries, or installations required.
+* **Persistent tasks:** Tasks, completion state, priorities, and theme preference are saved in the browser with `localStorage`.
+* **Task workflow:** Add, complete, edit, delete, and clear completed tasks.
+* **Priorities and filters:** Mark tasks as high, normal, or low priority and filter by all, active, or completed.
+* **Theme control:** Switch between light mode and dark mode.
+* **Keyboard friendly:** Press `Enter` to add a task, and use the edit action or double-click task text to edit.
+* **Responsive and dependency-free:** Works on desktop and mobile with no framework or installation required.
 
 
 
-To run the to-do list click the link below
-https://workwithpriyanshubisht-dev.github.io/to_do_list/
+To run the app locally, open `index.html` in a browser.
