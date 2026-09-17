@@ -26,6 +26,7 @@
       <div class="input-section">
         <input type="text" id="task-input" placeholder="What needs to be done?" maxlength="160" autocomplete="off" aria-label="New task">
         <label class="priority-control">Priority<select id="priority-input" aria-label="Task priority"><option value="normal">Normal priority</option><option value="high">High priority</option><option value="low">Low priority</option></select></label>
+        <label class="priority-control">Due time<input type="datetime-local" id="due-input" aria-label="Task due time"></label>
         <button id="add-btn" type="button">Add task</button>
       </div>
       <div class="toolbar">
@@ -41,19 +42,57 @@
     const taskInput = document.getElementById('task-input');
     const addBtn = document.getElementById('add-btn');
     const priorityInput = document.getElementById('priority-input');
+    const dueInput = document.getElementById('due-input');
     const taskList = document.getElementById('task-list');
     const remainingCount = document.getElementById('remaining-count');
     const emptyState = document.getElementById('empty-state');
     const clearCompleted = document.getElementById('clear-completed');
     const themeBtn = document.getElementById('theme-btn');
     let activeFilter = 'all';
-    let tasks = loadTasks();
+    let tasks = [];
+    let countdownInterval;
 
-    function loadTasks() {
-      try { return JSON.parse(localStorage.getItem('taskflow-tasks')) || []; } catch (error) { return []; }
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('taskflow-database', 1);
+        request.onupgradeneeded = () => request.result.createObjectStore('tasks', { keyPath: 'id' });
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
     }
 
-    function saveTasks() { localStorage.setItem('taskflow-tasks', JSON.stringify(tasks)); }
+    async function loadTasks() {
+      try {
+        const database = await openDatabase();
+        const storedTasks = await new Promise((resolve, reject) => {
+          const request = database.transaction('tasks', 'readonly').objectStore('tasks').getAll();
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+        if (storedTasks.length) return storedTasks;
+        const legacyTasks = JSON.parse(localStorage.getItem('taskflow-tasks')) || [];
+        if (legacyTasks.length) await saveTasks(legacyTasks);
+        return legacyTasks;
+      } catch (error) {
+        try { return JSON.parse(localStorage.getItem('taskflow-tasks')) || []; } catch (fallbackError) { return []; }
+      }
+    }
+
+    async function saveTasks(tasksToSave = tasks) {
+      try {
+        const database = await openDatabase();
+        const transaction = database.transaction('tasks', 'readwrite');
+        const store = transaction.objectStore('tasks');
+        store.clear();
+        tasksToSave.forEach(task => store.put(task));
+        await new Promise((resolve, reject) => {
+          transaction.oncomplete = resolve;
+          transaction.onerror = () => reject(transaction.error);
+        });
+      } catch (error) {
+        localStorage.setItem('taskflow-tasks', JSON.stringify(tasksToSave));
+      }
+    }
 
     function renderTasks() {
       const visibleTasks = tasks.filter(task => activeFilter === 'all' || (activeFilter === 'completed' ? task.completed : !task.completed));
@@ -85,7 +124,11 @@
       priority.className = 'priority-label';
       priority.textContent = { none: 'No priority', p1: 'High priority', p2: 'Normal priority', p3: 'Low priority', normal: 'Normal priority', high: 'High priority', low: 'Low priority' }[task.priority] || 'Normal priority';
 
-      const content = document.createElement('div'); content.className = 'task-content'; content.append(taskText, priority);
+      const content = document.createElement('div'); content.className = 'task-content';
+      const due = document.createElement('span');
+      due.className = 'task-due';
+      due.dataset.due = task.dueAt || '';
+      content.append(taskText, priority, due);
       const actions = document.createElement('div'); actions.className = 'task-actions';
       const editBtn = document.createElement('button');
       editBtn.className = 'row-btn'; editBtn.type = 'button'; editBtn.dataset.action = 'edit'; editBtn.textContent = 'Edit';
@@ -107,8 +150,8 @@
     function addTask() {
       const text = taskInput.value.trim();
       if (!text) return;
-      tasks.unshift({ id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), text, priority: priorityInput.value, completed: false });
-      saveTasks(); renderTasks(); taskInput.value = ''; taskInput.focus();
+      tasks.unshift({ id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), text, priority: priorityInput.value, dueAt: dueInput.value ? new Date(dueInput.value).toISOString() : null, completed: false });
+      saveTasks(); renderTasks(); taskInput.value = ''; dueInput.value = ''; taskInput.focus();
     }
 
     function updateTask(id, action) {
@@ -140,7 +183,40 @@
     });
     if (localStorage.getItem('taskflow-theme') === 'dark') { document.body.classList.add('dark-mode'); themeBtn.textContent = 'Light mode'; themeBtn.setAttribute('aria-label', 'Switch to light mode'); }
 
-    renderTasks();
+    function formatDueTime(dueAt) {
+      const remaining = new Date(dueAt).getTime() - Date.now();
+      if (remaining <= 0) return 'Overdue';
+      const minutes = Math.floor(remaining / 60000);
+      const days = Math.floor(minutes / 1440);
+      const hours = Math.floor((minutes % 1440) / 60);
+      const shortMinutes = minutes % 60;
+      if (days) return `${days}d ${hours}h left`;
+      if (hours) return `${hours}h ${shortMinutes}m left`;
+      return `${Math.max(1, shortMinutes)}m left`;
+    }
+
+    function formatDueDate(dueAt) {
+      return new Date(dueAt).toLocaleString([], {
+        month: 'numeric', day: 'numeric', year: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
+    }
+
+    function updateCountdowns() {
+      document.querySelectorAll('.task-due').forEach(element => {
+        if (!element.dataset.due) { element.hidden = true; return; }
+        element.hidden = false;
+        element.textContent = `Due ${formatDueDate(element.dataset.due)} (${formatDueTime(element.dataset.due)})`;
+        element.classList.toggle('overdue', new Date(element.dataset.due).getTime() <= Date.now());
+      });
+    }
+
+    loadTasks().then(loadedTasks => {
+      tasks = loadedTasks;
+      renderTasks();
+      updateCountdowns();
+      countdownInterval = setInterval(updateCountdowns, 30000);
+    });
   </script>
 </body>
 </html>

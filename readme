@@ -6,9 +6,10 @@ A responsive, lightweight single-page task manager built with pure HTML, CSS, an
 
 ## 🚀 Features
 
-* **Persistent tasks:** Tasks, completion state, priorities, and theme preference are saved in the browser with `localStorage`.
+* **Persistent tasks:** Tasks, completion state, priorities, due times, and theme preference are saved in the browser. Tasks use IndexedDB, with automatic migration from the previous `localStorage` format.
 * **Task workflow:** Add, complete, edit, delete, and clear completed tasks.
 * **Priorities and filters:** Mark tasks as high, normal, or low priority and filter by all, active, or completed.
+* **Task timing:** Give a task a due date and time to see its formatted deadline and a live countdown, including overdue status.
 * **Theme control:** Switch between light mode and dark mode.
 * **Keyboard friendly:** Press `Enter` to add a task, and use the edit action or double-click task text to edit.
 * **Responsive and dependency-free:** Works on desktop and mobile with no framework or installation required.
